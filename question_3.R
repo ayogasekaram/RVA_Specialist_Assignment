@@ -1,58 +1,100 @@
+########################################################################
+# Question 3: AE Severity {Shiny} Visualization
+# Author: Abinaya Yogasekaram
+# Purpose: Create an interactive {Shiny} dashboard with a quality bar 
+#          chart visualizing the distribution of adverse events using 
+#          {ggplot2}. Allow for filtering by treatment arm.
+# Input:
+#   - pharmaverseadam::adae  : Adverse Events dataset
+#
+# Output:
+#   - AE visualization
+#
+# Workflow:
+# 1. Set up dashboard UI
+# 2. Set up dashboard server
+########################################################################
+
 # Load libraries
 library(shiny)
-library(pharmaverseadam)  # adae dataset
+library(shinydashboard)
+library(pharmaverseadam)
 library(dplyr)
 library(ggplot2)
 library(forcats)
 
-# Define UI
-ui <- fluidPage(
-  titlePanel("Adverse Events by SOC and Severity"),
-  sidebarLayout(
-    sidebarPanel(
-      checkboxGroupInput(
-        inputId = "arm_filter",
-        label = "Select Treatment Arm(s):",
-        choices = unique(adae$ACTARM),
-        selected = unique(adae$ACTARM)
-      )
-    ),
-    mainPanel(
-      plotOutput("ae_barplot", height = "600px")
+# UI
+ui <- dashboardPage(
+  
+  dashboardHeader(title = "AE Summary Interactive Dashboard"),
+  
+  dashboardSidebar( # Set treatment arm filter in the sidebar
+    width = 220,
+    
+    checkboxGroupInput(
+      inputId = "arm_filter",
+      label = "Select Treatment Arm(s)",
+      choices = unique(adae$ACTARM),
+      selected = unique(adae$ACTARM)
     )
+  ),
+  
+  dashboardBody(
+    
+    fluidRow(
+      box(
+        width = 12,
+        title = "Adverse Events by SOC and Severity",
+        status = "primary",
+        solidHeader = TRUE,
+        collapsible = TRUE,
+        plotOutput("ae_barplot", height = "700px")
+      )
+    )
+    
   )
 )
 
-# Define server
+# Server
 server <- function(input, output, session) {
   
-  # Reactive dataset filtered by Treatment Arm
+  # Filter data based on selected treatment arms
   filtered_data <- reactive({
     req(input$arm_filter)
-    adae %>% filter(ACTARM %in% input$arm_filter)
+    adae %>%
+      filter(ACTARM %in% input$arm_filter)
   })
   
-  # Reactive summarized data for plotting
+  # Summarize filtered AE data
   summarized_data <- reactive({
+    
     filtered_data() %>%
-      group_by(AESOC, AESEV, USUBJID) %>%
-      summarise(.groups = "drop") %>%               # ensure each subject counted once per severity per SOC
-      group_by(AESOC, AESEV) %>%
-      summarise(Count = n_distinct(USUBJID), .groups = "drop") %>%
-      ungroup() %>%
-      mutate(AESOC = factor(AESOC, levels = (
-        group_by(., AESOC) %>% 
-          summarise(Total = sum(Count)) %>% 
-          arrange(Total) %>% 
-          pull(AESOC)
-      )))
+      distinct(AESOC, AESEV, USUBJID) %>%
+      count(AESOC, AESEV, name = "Count") %>%
+      mutate(AESOC = fct_reorder(AESOC, Count, .fun = sum))
+    
   })
   
-  # Render reactive plot
+  # Plot
   output$ae_barplot <- renderPlot({
-    ggplot(summarized_data(), aes(x = Count, y = AESOC, fill = AESEV)) +
-      geom_col() +
-      scale_fill_brewer(palette = "Set2") +
+    
+    # return a message if no treatment arm selected
+    validate(
+      need(length(input$arm_filter) > 0,
+           "Please select a Treatment arm to display the plot")
+    )
+    
+    df <- summarized_data()
+    
+    # message if filters result in no data
+    validate(
+      need(nrow(df) > 0,
+           "No adverse event data available for the selected filters")
+    )
+    
+    ggplot(df, aes(x = Count, y = AESOC, fill = AESEV)) +
+      geom_col(position = position_stack(reverse = TRUE)) +
+      scale_fill_brewer(palette = "Greens") +
       labs(
         x = "Number of Unique Subjects",
         y = "System Organ Class (SOC)",
@@ -69,5 +111,5 @@ server <- function(input, output, session) {
   })
 }
 
-# Run the app
+# Run app
 shinyApp(ui, server)

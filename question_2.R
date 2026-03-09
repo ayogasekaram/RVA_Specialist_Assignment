@@ -10,14 +10,9 @@
 #   - AE visualization (PNG file)
 #
 # Workflow:
-# 1. Data Preprocessing
+# 1. Data Preprocessing : 
 # 2. Create Visualizations
 #
-# Note: There are two options for ordering below. There is code that uses
-#       the deduplicated data to calculate the total number of subjects
-#       for each SOC. To match the order in the sample output, there is 
-#       also code that uses the global AE counts per SOC to set the order 
-#       of the bars.
 ########################################################################
 
 # ---- Load Libraries ----------------------------------------------------------
@@ -34,7 +29,7 @@ adae <- pharmaverseadam::adae
 # Count unique subjects per SOC per severity
 # Deduplicated: each subject counted at most once per severity per SOC
 ae_summary_dedup <- adae %>%
-  distinct(AESOC, AESEV, USUBJID) %>%          # ensure each subject counted once per SOC + severity
+  distinct(AESOC, AESEV, USUBJID) %>%  # ensure each subject counted once per SOC + severity
   count(AESOC, AESEV, name = "Count") %>%
   mutate(
     AESOC = forcats::fct_reorder(AESOC, Count, .fun = sum),  # order by total unique subjects
@@ -42,7 +37,7 @@ ae_summary_dedup <- adae %>%
   )
 
 # Compute total per SOC for ordering
-soc_totals_dedup <- ae_summary %>%
+soc_totals_dedup <- ae_summary_dedup %>%
   group_by(AESOC) %>%
   summarise(Total = sum(Count)) %>%
   arrange(Total)
