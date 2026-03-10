@@ -1,21 +1,24 @@
 ########################################################################
 # Question 3: AE Severity {Shiny} Visualization
 # Author: Abinaya Yogasekaram
+# Date: 2026-03-10
 #
 # Purpose:
-# Create an interactive {Shiny} dashboard visualizing the distribution
-# of adverse events by System Organ Class and Severity.
+# Interactive {Shiny} dashboard visualizing distribution of adverse events
+# by System Organ Class (AESOC) and Severity (AESEV).
 #
-# Users can filter results by Treatment Arm.
+# Users can filter by Treatment Arm (ACTARM) and optionally restrict to
+# Treatment-Emergent AEs (TRTEMFL == "Y").
 #
 # Input:
-#   pharmaverseadam::adae  (Adverse Events dataset)
+#   pharmaverseadam::adae
 #
 # Key Clinical Rule:
 # Each subject must be counted at most once per SOC and severity level.
 #
-# Output:
-#   Interactive bar chart
+# Shared helpers:
+#   prep_ae_soc_sev(), plot_ae_soc_sev() are sourced from:
+#     R/ae_severity_plot.R
 ########################################################################
 
 # ---- Load Libraries ----------------------------------------------------------
@@ -26,18 +29,18 @@ library(dplyr)
 library(ggplot2)
 library(forcats)
 
-# ---- Load Data ---------------------------------------------------------------
+# ---- Source Shared Helpers ---------------------------------------------------
+source("../R/ae_severity_plot.R")
 
+# ---- Load Data ---------------------------------------------------------------
 adae <- pharmaverseadam::adae
 
 # ---- UI ----------------------------------------------------------------------
-
 ui <- dashboardPage(
-  
   dashboardHeader(title = "AE Summary Interactive Dashboard"),
   
   dashboardSidebar(
-    width = 220,
+    width = 260,
     
     checkboxGroupInput(
       inputId = "arm_filter",
@@ -46,13 +49,30 @@ ui <- dashboardPage(
       selected = sort(unique(adae$ACTARM))
     ),
     
+    checkboxInput(
+      inputId = "teae_only",
+      label = "Treatment-emergent only (TRTEMFL == 'Y')",
+      value = FALSE
+    ),
+    
     br(),
     
-    actionButton("select_all", "Select All"),
-    actionButton("clear_all", "Clear All")
+    fluidRow(
+      column(width = 6, actionButton("select_all", "Select All")),
+      column(width = 6, actionButton("clear_all", "Clear All"))
+    ),
+    
+    br(),
+    
+    downloadButton("download_png", "Download plot (PNG)")
   ),
   
   dashboardBody(
+    fluidRow(
+      valueBoxOutput("n_subjects", width = 4),
+      valueBoxOutput("n_socs", width = 4),
+      valueBoxOutput("n_rows", width = 4)
+    ),
     
     fluidRow(
       box(
@@ -61,20 +81,16 @@ ui <- dashboardPage(
         status = "primary",
         solidHeader = TRUE,
         collapsible = TRUE,
-        
         plotOutput("ae_barplot", height = "700px")
       )
     )
-    
   )
 )
 
 # ---- Server ------------------------------------------------------------------
-
 server <- function(input, output, session) {
   
   # ---- Select All / Clear All Buttons ---------------------------------------
-  
   observeEvent(input$select_all, {
     updateCheckboxGroupInput(
       session,
@@ -84,53 +100,59 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$clear_all, {
-    updateCheckboxGroupInput(
-      session,
-      "arm_filter",
-      selected = character(0)
+    updateCheckboxGroupInput(session, "arm_filter", selected = character(0))
+  })
+  
+  # ---- Summarize Data (Reactive) ---------------------------------------------
+  summarized_data <- reactive({
+    arms <- input$arm_filter
+    
+    # If none selected, return an empty tibble with expected columns
+    if (is.null(arms) || length(arms) == 0) {
+      return(tibble(
+        AESOC = character(0),
+        AESEV = factor(levels = c("MILD", "MODERATE", "SEVERE", "MISSING")),
+        n = integer(0),
+        total_soc = integer(0)
+      ))
+    }
+    
+    prep_ae_soc_sev(
+      adae = adae,
+      actarm = arms,
+      teae_only = input$teae_only
     )
   })
   
-  # ---- Filter Data -----------------------------------------------------------
-  
-  filtered_data <- reactive({
+  # ---- Value Boxes (Quick QA) ------------------------------------------------
+  output$n_subjects <- renderValueBox({
+    arms <- input$arm_filter
+    if (is.null(arms) || length(arms) == 0) {
+      return(valueBox(value = 0, subtitle = "Unique Subjects", icon = icon("users")))
+    }
     
-    req(input$arm_filter)
+    df <- adae %>% filter(ACTARM %in% arms)
+    if (isTRUE(input$teae_only)) df <- df %>% filter(TRTEMFL == "Y")
     
-    adae %>%
-      filter(ACTARM %in% input$arm_filter)
-    
+    n_subj <- dplyr::n_distinct(df$USUBJID)
+    valueBox(value = n_subj, subtitle = "Unique Subjects", icon = icon("users"))
   })
   
-  # ---- Summarize Data --------------------------------------------------------
+  output$n_socs <- renderValueBox({
+    df <- summarized_data()
+    valueBox(value = dplyr::n_distinct(df$AESOC), subtitle = "SOCs (filtered)", icon = icon("list"))
+  })
   
-  summarized_data <- reactive({
-    
-    filtered_data() %>%
-      
-      # Each subject counted once per SOC and severity level
-      distinct(USUBJID, AESOC, AESEV) %>%
-      
-      count(AESOC, AESEV, name = "n") %>%
-      
-      group_by(AESOC) %>%
-      mutate(total_soc = sum(n)) %>%
-      ungroup() %>%
-      
-      mutate(
-        AESOC = fct_reorder(AESOC, total_soc),
-        AESEV = factor(AESEV, levels = c("MILD", "MODERATE", "SEVERE"))
-      )
-    
+  output$n_rows <- renderValueBox({
+    df <- summarized_data()
+    valueBox(value = nrow(df), subtitle = "SOC x Severity rows", icon = icon("table"))
   })
   
   # ---- Plot ------------------------------------------------------------------
-  
   output$ae_barplot <- renderPlot({
-    
     validate(
-      need(length(input$arm_filter) > 0,
-           "Please select a treatment arm to display the plot.")
+      need(!is.null(input$arm_filter) && length(input$arm_filter) > 0,
+           "Please select at least one treatment arm to display the plot.")
     )
     
     df <- summarized_data()
@@ -140,26 +162,33 @@ server <- function(input, output, session) {
            "No adverse event data available for the selected filters.")
     )
     
-    ggplot(df, aes(x = n, y = AESOC, fill = AESEV)) +
-      geom_col(position = position_stack(reverse = TRUE)) +
-      scale_fill_brewer(palette = "Greens") +
-      labs(
-        title = "Distribution of Adverse Events by SOC and Severity",
-        x = "Number of Unique Subjects",
-        y = "System Organ Class (SOC)",
-        fill = "AE Severity"
-      ) +
-      theme_minimal(base_size = 14) +
-      theme(
-        axis.text.y = element_text(size = 12),
-        axis.title = element_text(size = 14),
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 11)
-      )
-    
+    plot_ae_soc_sev(df)
   })
+  
+  # ---- Download Handler ------------------------------------------------------
+  output$download_png <- downloadHandler(
+    filename = function() {
+      paste0("ae_severity_plot_", Sys.Date(), ".png")
+    },
+    content = function(file) {
+      df <- summarized_data()
+      
+      if (nrow(df) == 0) {
+        p <- ggplot() + theme_void() + labs(title = "No data to display for selected filters")
+      } else {
+        p <- plot_ae_soc_sev(df)
+      }
+      
+      ggsave(
+        filename = file,
+        plot = p,
+        width = 17,
+        height = 8,
+        dpi = 300
+      )
+    }
+  )
 }
 
 # ---- Run App -----------------------------------------------------------------
-
 shinyApp(ui, server)
