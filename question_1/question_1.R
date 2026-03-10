@@ -59,11 +59,14 @@ tbl <- adae_sub |>
       )
   ) |>
   sort_hierarchical() |> # sorting by descending frequency
-  modify_caption("Summary of Treatment-Emergent Adverse Events (Safety Population)") # adding a title
+  modify_caption("Summary of Treatment-Emergent Adverse Events by System Organ Class and Preferred Term (Safety Population)") |>
+  modify_footnote(
+    everything() ~ "n = number of subjects with at least one event; percentages based on total subjects in the safety population."
+  )
 
 tbl
 
 # ---- Export to html ----------------------------------------------------------
 tbl |>
   as_gt() |>
-  gt::gtsave("teae_summary_table.html")
+  gt::gtsave("../question_1/teae_summary.html")
