@@ -15,15 +15,14 @@ Core tools: {tidyverse}, {gtsummary}, {ggplot2}, {shiny}
 ``` text
 RVA_Assessment/
 ├── question_1/
-│ ├── question_1.R # Regulatory-compliant TEAE summary table
-│ └── teae_summary.html # Output HTML table
+│ ├── question_1.R 
+│ └── teae_summary.html 
 ├── question_2/
-│ ├── question_2.R # AE severity bar chart code
-│ └── AE_severity_plot.png # Publication-quality plot
+│ ├── question_2.R 
+│ └── ae_severity_plot.png 
 ├── question_3/
-│ ├── question_3.R # Shiny app integrating AE severity plot
-│ └── www/ #static resources (images, CSS)
-├── README.md # This file
+│ ├── question_3.R 
+├── README.md
 ```
 
 ---
