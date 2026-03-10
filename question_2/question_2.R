@@ -1,6 +1,7 @@
 ########################################################################
 # Question 2: AE Severity Visualization
 # Author: Abinaya Yogasekaram
+# Date: 2026-03-11
 # Purpose: Create a publication quality bar chart visualizing the
 #          distribution of adverse events using {ggplot2}.
 # Input:
@@ -29,7 +30,7 @@ adae <- pharmaverseadam::adae
 # ---- Prepare Data ------------------------------------------------------------
 # Count unique subjects per SOC per severity
 ae_summary <- adae %>%
-  distinct(USUBJID, AESOC, AESEV) %>% # each subject counted at most once per severity per SOC
+  distinct(USUBJID, AESOC, AESEV) %>% # Each subject counted once per SOC and severity
   count(AESOC, AESEV, name = "n") %>%
   group_by(AESOC) %>%
   mutate(total_soc = sum(n)) %>%   # total subjects per SOC for ordering

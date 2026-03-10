@@ -13,18 +13,21 @@ Core tools: {tidyverse}, {gtsummary}, {ggplot2}, {shiny}
 
 ## Repository Structure
 ``` text
-RVA_Assessment/
-├── question_1/
-│ ├── question_1.R 
-│ └── teae_summary.html 
-├── question_2/
-│ ├── question_2.R 
-│ └── ae_severity_plot.png 
-├── question_3/
-│ ├── question_3.R 
-├── README.md
-```
+RVA_specialist_assessment/
 
+├── question_1/
+│   └── question_1.R
+│   └── teae_summary.html
+|
+├── question_2/
+│   └── question_2.R
+│   └── ae_severity_plot.png
+│
+├── question_3/
+│   └── app.R
+│
+└── README.md
+```
 ---
 
 ## Question 1: TEAE Summary Table
@@ -65,13 +68,13 @@ RVA_Assessment/
 ## Getting Started
 1. **Install Required Packages**
 ```r
-install.packages(c("pharmaverseadam", "tidyverse", "gtsummary", "ggplot2", "shiny"))
+install.packages(c("pharmaverseadam", "tidyverse", "gtsummary", "ggplot2", "shiny", "forcats", "crane"))
 ```
 
 2. **Run Shiny App**
 ```r
-# From question_3 folder
-shiny::runApp("question_3.R")
+setwd("question_3")
+shiny::runApp()
 ```
 
 ------------------------------------------------------------------------
