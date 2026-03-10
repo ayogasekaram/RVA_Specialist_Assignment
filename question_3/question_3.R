@@ -42,6 +42,7 @@ ui <- dashboardPage(
   dashboardSidebar(
     width = 260,
     
+    # arm filter
     checkboxGroupInput(
       inputId = "arm_filter",
       label = "Select Treatment Arm(s)",
@@ -49,6 +50,7 @@ ui <- dashboardPage(
       selected = sort(unique(adae$ACTARM))
     ),
     
+    # filter treatment emergent only
     checkboxInput(
       inputId = "teae_only",
       label = "Treatment-emergent only (TRTEMFL == 'Y')",
@@ -57,6 +59,7 @@ ui <- dashboardPage(
     
     br(),
     
+    # buttons to clear all or select all arms
     fluidRow(
       column(width = 6, actionButton("select_all", "Select All")),
       column(width = 6, actionButton("clear_all", "Clear All"))
@@ -64,9 +67,11 @@ ui <- dashboardPage(
     
     br(),
     
+    # button to download the plot
     downloadButton("download_png", "Download plot (PNG)")
   ),
   
+  # header widgets, number of subjects, socs and rows displayed in the current plot.
   dashboardBody(
     fluidRow(
       valueBoxOutput("n_subjects", width = 4),
@@ -117,6 +122,7 @@ server <- function(input, output, session) {
       ))
     }
     
+    # reuse data preparation function from Q2
     prep_ae_soc_sev(
       adae = adae,
       actarm = arms,
@@ -124,7 +130,9 @@ server <- function(input, output, session) {
     )
   })
   
-  # ---- Value Boxes (Quick QA) ------------------------------------------------
+  # ---- Value Boxes  ----------------------------------------------------------
+  # summarize filtered data for widgets
+  # unique subjects
   output$n_subjects <- renderValueBox({
     arms <- input$arm_filter
     if (is.null(arms) || length(arms) == 0) {
@@ -138,11 +146,13 @@ server <- function(input, output, session) {
     valueBox(value = n_subj, subtitle = "Unique Subjects", icon = icon("users"))
   })
   
+  # unique SOCs
   output$n_socs <- renderValueBox({
     df <- summarized_data()
     valueBox(value = dplyr::n_distinct(df$AESOC), subtitle = "SOCs (filtered)", icon = icon("list"))
   })
   
+  # number of AEs
   output$n_rows <- renderValueBox({
     df <- summarized_data()
     valueBox(value = nrow(df), subtitle = "SOC x Severity rows", icon = icon("table"))
@@ -162,6 +172,7 @@ server <- function(input, output, session) {
            "No adverse event data available for the selected filters.")
     )
     
+    # reuse plot function from Q2
     plot_ae_soc_sev(df)
   })
   
@@ -170,6 +181,7 @@ server <- function(input, output, session) {
     filename = function() {
       paste0("ae_severity_plot_", Sys.Date(), ".png")
     },
+    
     content = function(file) {
       df <- summarized_data()
       

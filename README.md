@@ -1,90 +1,96 @@
 # RVA Specialist Coding Assessment
-**Candidate:** @ayogasekaram\
-**Date:** 2026-03-11
----
+**Candidate:** @ayogasekaram  
+**Date:** 2026-03-11  
+**R version tested:** R 4.2.0+  
 
 ## Introduction
-This repository contains my solutions to the R Shiny Clinical Data Assessment,
-demonstrating skills in clinical data manipulation, reporting, visualization, and interactive dashboards using R.
+This repository contains my solutions to the **R Shiny Clinical Data Assessment**, demonstrating clinical data manipulation, reporting, visualization, and interactive dashboard development in R.
 
-Datasets used: `pharmaverseadam::ADSL` and `pharmaverseadam::ADAE`
-Core tools: {tidyverse}, {gtsummary}, {ggplot2}, {shiny}
----
+- **Datasets:** `pharmaverseadam::adsl`, `pharmaverseadam::adae`  
+- **Core tools:** `{tidyverse}`, `{gtsummary}`, `{ggplot2}`, `{shiny}`  
 
 ## Repository Structure
-``` text
+```text
 RVA_specialist_assessment/
-
+├── R/
+│   └── ae_severity_plot.R
 ├── question_1/
-│   └── question_1.R
+│   ├── question_1.R
 │   └── teae_summary.html
-|
 ├── question_2/
-│   └── question_2.R
+│   ├── question_2.R
 │   └── ae_severity_plot.png
-│
 ├── question_3/
-│   └── app.R
-│
+│   └── question_3.R
 └── README.md
 ```
----
+
+**Shared code:** `R/ae_severity_plot.R` contains helper functions reused in **Question 2** and **Question 3** to ensure consistent derivations and plotting.
 
 ## Question 1: TEAE Summary Table
 - **Objective:** Create a regulatory-compliant summary of treatment-emergent adverse events (TEAEs).  
 - **Data:** `pharmaverseadam::adae` and `pharmaverseadam::adsl`  
-- **Requirements:**
-  - Include only TEAE records (`TRTEMFL == "Y"`)
-  - Rows: System Organ Class (`AESOC`) and Preferred Term (`AEDECOD`)
-  - Columns: Treatment groups (`ACTARM`)
-  - Cell values: Subject count and percentage of total study population
-  - Total row: Summary of all TEAEs at the top
-- **Output:** HTML file 
-
----
+- **Key requirements implemented:**
+  - TEAE records only (`TRTEMFL == "Y"`)
+  - Rows: `AESOC` and `AEDECOD`
+  - Columns: `ACTARM`
+  - Cell values: unique subject count and percentage using the **total ADSL population** as denominator
+  - Includes a **Total TEAE** summary row at the top
+- **Output:** `question_1/teae_summary.html`
 
 ## Question 2: AE Severity Visualization
-- **Objective:** Generate a publication-quality stacked bar chart of adverse event severity.  
+- **Objective:** Publication-quality stacked bar chart of AE severity distribution.  
 - **Data:** `pharmaverseadam::adae`  
-- **Requirements:**
-  - X-axis: Count of **unique subjects per SOC per severity** (each subject counted once per severity per SOC)
-  - Y-axis: System Organ Class term (`AESOC`)
-  - Color/Fill: AE Severity (`AESEV`)
-  - Bars stacked and ordered by increasing total frequency per SOC
-- **Output:** PNG file created with `{ggplot2}`
-
----
+- **Key requirements implemented:**
+  - Counts **unique subjects per SOC per severity** (each subject counted once per `(AESOC, AESEV)`)
+  - Y-axis: `AESOC`
+  - Fill: `AESEV`
+  - SOC ordering: increasing total frequency per SOC
+- **Output:** `question_2/ae_severity_plot.png`
 
 ## Question 3: Interactive R Shiny Application
-- **Objective:** Build a Shiny dashboard integrating the AE severity visualization from Question 2.  
-- **Requirements:**
-  - Display the stacked bar chart from Question 2
-  - Add a **Treatment Arm (`ACTARM`) filter** via `selectInput` or `checkboxGroupInput`
-  - Chart updates dynamically based on user selection
-- **Output:** Interactive Shiny app implemented using `{shiny}`
-
----
+- **Objective:** Shiny dashboard integrating the visualization from Question 2.  
+- **Key requirements implemented:**
+  - Displays the SOC x Severity stacked bar chart
+  - Filter by Treatment Arm (`ACTARM`)
+  - Plot updates dynamically based on user selection
+  - (If implemented) optional TEAE-only toggle (`TRTEMFL == "Y"`)
+- **Run location:** `question_3/question_3.R`
 
 ## Getting Started
-1. **Install Required Packages**
+
+### 1) Install Required Packages
 ```r
-install.packages(c("pharmaverseadam", "tidyverse", "gtsummary", "ggplot2", "shiny", "forcats", "crane"))
+install.packages(c(
+  "pharmaverseadam",
+  "tidyverse",
+  "gtsummary",
+  "ggplot2",
+  "shiny",
+  "shinydashboard",
+  "forcats"
+))
 ```
 
-2. **Run Shiny App**
+### 2) Run scripts (recommended from repo root)
 ```r
-setwd("question_3")
-shiny::runApp()
+source("question_1/question_1.R")
+source("question_2/question_2.R")
 ```
 
-------------------------------------------------------------------------
+### 3) Run the Shiny App (recommended from repo root)
+```r
+shiny::runApp("question_3")
+```
 
-# Repo Walk-Through Video
+## Repo Walk-Through Video
+Video walkthrough (ensure link permissions allow viewing):  
+```text
+https://drive.google.com/file/d/1BSVvzmRXWbwLwqbHwTl66RFy2O-yd3JI/view?usp=drive_link
+```
 
-Video can be found [here](https://drive.google.com/file/d/1BSVvzmRXWbwLwqbHwTl66RFy2O-yd3JI/view?usp=drive_link)
-
-Explains design decisions and coding approach
-
-Demonstrates the outputs for each question
-
-Discusses challenges and learnings
+The video covers:
+- repository structure
+- approach and design decisions
+- demonstration of outputs for each question
+- challenges and learnings
