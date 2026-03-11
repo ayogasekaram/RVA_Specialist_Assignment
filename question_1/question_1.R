@@ -11,8 +11,7 @@
 # Output:
 #   - AE summary table (HTML)
 #
-# Workflow:
-# 1. Summary Table
+# Summary Table
 #    - Create a treatment-emergent AE (TEAE) table using {gtsummary}
 #    - Filter: TRTEMFL == "Y"
 #    - Rows: AEDECOD and AESOC
@@ -30,7 +29,7 @@ library(crane)
 crane::theme_gtsummary_roche()
 
 # ---- Load data ---------------------------------------------------------------
-adsl <- pharmaverseadam::adsl # subject level data for denominator
+adsl <- pharmaverseadam::adsl 
 adae <- pharmaverseadam::adae
 
 # ---- Data Preparation --------------------------------------------------------
