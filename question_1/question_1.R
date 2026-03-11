@@ -69,4 +69,4 @@ tbl
 # ---- Export to html ----------------------------------------------------------
 tbl |>
   as_gt() |>
-  gt::gtsave("../question_1/teae_summary.html")
+  gt::gtsave("question_1/teae_summary.html")

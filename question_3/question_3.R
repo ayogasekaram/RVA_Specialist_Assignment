@@ -13,9 +13,6 @@
 # Input:
 #   pharmaverseadam::adae
 #
-# Key Clinical Rule:
-# Each subject must be counted at most once per SOC and severity level.
-#
 # Shared helpers:
 #   prep_ae_soc_sev(), plot_ae_soc_sev() are sourced from:
 #     R/ae_severity_plot.R
@@ -30,7 +27,7 @@ library(ggplot2)
 library(forcats)
 
 # ---- Source Shared Helpers ---------------------------------------------------
-source("../R/ae_severity_plot.R")
+source("R/ae_severity_plot.R")
 
 # ---- Load Data ---------------------------------------------------------------
 adae <- pharmaverseadam::adae

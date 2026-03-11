@@ -16,6 +16,10 @@
 #     Order the data by highest to lowest count per SOC
 #     Summarize the total counts per AESOC for plotting
 # 2. Create Visualization
+#
+# Shared helpers:
+#   prep_ae_soc_sev(), plot_ae_soc_sev() are sourced from:
+#     R/ae_severity_plot.R
 ########################################################################
 
 # ---- Load Libraries ----------------------------------------------------------
@@ -26,7 +30,7 @@ library(forcats)
 
 # ---- Load Data ---------------------------------------------------------------
 adae <- pharmaverseadam::adae
-source("../R/ae_severity_plot.R")
+source("R/ae_severity_plot.R")
 
 # ---- Prepare Data ------------------------------------------------------------
 ae_summary <- prep_ae_soc_sev(adae, teae_only = FALSE)
@@ -39,7 +43,7 @@ ae_severity_plot
 
 # ---- Save Plot ---------------------------------------------------------------
 ggsave(
-  filename = "../question_2/ae_severity_plot.png", 
+  filename = "question_2/ae_severity_plot.png", 
   plot = ae_severity_plot, 
   width = 17, 
   height = 8, 
