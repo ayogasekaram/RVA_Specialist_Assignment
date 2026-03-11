@@ -84,7 +84,7 @@ shiny::runApp("question_3")
 ```
 
 ## Repo Walk-Through Video
-Video walk through can be found [here](https://drive.google.com/file/d/1BSVvzmRXWbwLwqbHwTl66RFy2O-yd3JI/view?usp=drive_link)
+Video walk through can be found [here](https://drive.google.com/file/d/1We45vlUSzCVlQ2xq-z56_WnTYywJWUU6/view?usp=sharing)
 
 The video covers:
 - repository structure
