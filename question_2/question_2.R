@@ -30,6 +30,8 @@ library(forcats)
 
 # ---- Load Data ---------------------------------------------------------------
 adae <- pharmaverseadam::adae
+
+# ---- Source Shared Helpers ---------------------------------------------------
 source("R/ae_severity_plot.R")
 
 # ---- Prepare Data ------------------------------------------------------------
