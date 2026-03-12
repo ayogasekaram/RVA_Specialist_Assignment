@@ -7,7 +7,7 @@
 This repository contains my solutions to the **R Shiny Clinical Data Assessment**, demonstrating clinical data manipulation, reporting, visualization, and interactive dashboard development in R.
 
 - **Datasets:** `pharmaverseadam::adsl`, `pharmaverseadam::adae`  
-- **Core tools:** `{tidyverse}`, `{gtsummary}`, `{ggplot2}`, `{shiny}`  
+- **Core tools:** `{tidyverse}`, `{gtsummary}`, `{ggplot2}`, `{shiny}`, `{shinydashboard}`  
 
 ## Repository Structure
 ```text
@@ -54,7 +54,7 @@ RVA_specialist_assessment/
   - Displays the SOC x Severity stacked bar chart
   - Filter by Treatment Arm (`ACTARM`)
   - Plot updates dynamically based on user selection
-  - (If implemented) optional TEAE-only toggle (`TRTEMFL == "Y"`)
+  - TEAE-only toggle (`TRTEMFL == "Y"`)
 - **Run location:** `question_3/question_3.R`
 
 ## Getting Started
